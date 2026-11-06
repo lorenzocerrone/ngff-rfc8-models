@@ -1,7 +1,14 @@
 from uuid import uuid7
 
-from .aux import StandaloneJson, ZarrJson
-from .models import *
+from rfc8_model.aux import StandaloneJson, ZarrJson
+from rfc8_model.models import (
+    CollectionNode,
+    MultiscaleNode,
+    MultiscaleNodeItem,
+    MultiscaleNodeReference,
+    ScaleDownsamplingCoordinateTransformation,
+    ZarrPath,
+)
 
 multiscale_file = ZarrJson.with_ome(
     MultiscaleNode(
