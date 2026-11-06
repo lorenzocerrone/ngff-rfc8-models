@@ -6,11 +6,12 @@ from rfc8_model.models import (
     MultiscaleNode,
     MultiscaleNodeArray,
     MultiscaleNodeReference,
+    RelativePathReferenceLocator,
     ScaleDownsamplingCoordinateTransformation,
-    ZarrPath,
+    ZarrReferenceLocator,
 )
 
-multiscale_file = ZarrJson.with_ome(
+multiscale_zarr_group = ZarrJson.with_ome(
     MultiscaleNode(
         coordinate_systems=(),
         arrays=(
@@ -33,17 +34,33 @@ multiscale_file = ZarrJson.with_ome(
 )
 
 
-collection_file = StandaloneJson.with_ome(
+collection_standalone_file = StandaloneJson.with_ome(
     CollectionNode(
         id=str(uuid7()),
         nodes=(
             MultiscaleNodeReference(
                 id=str(uuid7()),
-                path=ZarrPath(format="relative", href=multiscale_file.path),
+                ref=(
+                    RelativePathReferenceLocator(path="./raw"),
+                    ZarrReferenceLocator(),
+                ),
             ),
         ),
     )
 )
 
-print(repr(multiscale_file))
-print(repr(collection_file))
+collection_zarr_group = ZarrJson.with_ome(
+    CollectionNode(
+        id=str(uuid7()),
+        nodes=(
+            MultiscaleNodeReference(
+                id=str(uuid7()),
+                ref=(ZarrReferenceLocator(path="./raw"),),
+            ),
+        ),
+    )
+)
+
+print(repr(multiscale_zarr_group))
+print(repr(collection_standalone_file))
+print(repr(collection_zarr_group))

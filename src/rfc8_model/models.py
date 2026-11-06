@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Annotated, Literal
 
-from pydantic import MISSING, BaseModel, Discriminator, StringConstraints
+from pydantic import MISSING, BaseModel, StringConstraints
 
 from .utils import OpenTypeUnion
 
@@ -12,27 +12,40 @@ Type = Annotated[str, StringConstraints(pattern="^.+$")]
 
 CustomPathFormat = Annotated[str, StringConstraints(pattern="^.+$")]
 
-PathFormat = Literal["relative"] | CustomPathFormat
+
+class RelativePathReferenceLocator(BaseModel):
+    type: Literal["relative"] = "relative"
+    path: Annotated[str, StringConstraints(pattern="^.+$")]
 
 
-class _Path(BaseModel):
-    format: PathFormat
-    href: str
-
-
-class ZarrPath(_Path):
+class ZarrReferenceLocator(BaseModel):
     type: Literal["zarr"] = "zarr"
+    path: str | MISSING = MISSING
 
 
-class JsonPath(_Path):
+class JsonReferenceLocator(BaseModel):
     type: Literal["json"] = "json"
 
 
-class CustomPath(_Path):
+class IdReferenceLocator(BaseModel):
+    type: Literal["id"] = "id"
+    id: Id
+
+
+class CustomReferenceLocator(BaseModel):
     type: Type
 
 
-Path = Annotated[ZarrPath | JsonPath | CustomPath, OpenTypeUnion()]
+ReferenceLocator = Annotated[
+    RelativePathReferenceLocator
+    | ZarrReferenceLocator
+    | JsonReferenceLocator
+    | IdReferenceLocator
+    | CustomReferenceLocator,
+    OpenTypeUnion(),
+]
+
+ReferenceLocatorPipeline = tuple[ReferenceLocator, ...]
 
 
 class _CoordinateSystemAxis(BaseModel):
@@ -91,8 +104,7 @@ class CoordinateSystem(BaseModel):
 
 class CoordinateTransformationReference(BaseModel):
     type: Literal["coordinate_system"] = "coordinate_system"
-    ref: Id
-    path: Path | MISSING = MISSING
+    ref: ReferenceLocatorPipeline
 
 
 class _CoordinateTransformation(BaseModel):
@@ -169,7 +181,7 @@ class MultiscaleNodeReference(BaseModel):
     type: Literal["multiscale"] = "multiscale"
     id: Id
     name: Name | MISSING = MISSING
-    path: Path
+    ref: ReferenceLocatorPipeline
     traits: tuple[Trait, ...] | MISSING = MISSING
 
 
@@ -185,7 +197,7 @@ class CollectionNodeReference(BaseModel):
     type: Literal["collection"] = "collection"
     id: Id
     name: Name | MISSING = MISSING
-    path: Path
+    ref: ReferenceLocatorPipeline
     traits: tuple[Trait, ...] | MISSING = MISSING
 
 
@@ -200,7 +212,7 @@ class CustomLeafNodeReference(BaseModel):
     type: Type
     id: Id
     name: Name | MISSING = MISSING
-    path: Path
+    ref: ReferenceLocatorPipeline
     traits: tuple[Trait, ...] | MISSING = MISSING
 
 
