@@ -1,15 +1,17 @@
 from __future__ import annotations
 
-from typing import Literal
+from typing import Literal, Self
 
 from pydantic import BaseModel
 
+from .extensions import ExtensionManifest
 from .models import Node
 
 
 class OmeAttributes(BaseModel):
     version: Literal["0.9dev42"] = "0.9dev42"
-    payload: Node  # flatten
+    root: Node
+    extension_manifest: ExtensionManifest | None = None
 
 
 class Attributes(BaseModel):
@@ -22,8 +24,8 @@ class ZarrJson(BaseModel):
     attributes: Attributes
 
     @classmethod
-    def with_ome(cls, node: Node) -> ZarrJson:
-        return cls(attributes=Attributes(ome=OmeAttributes(payload=node)))
+    def with_ome(cls, node: Node) -> Self:
+        return cls(attributes=Attributes(ome=OmeAttributes(root=node)))
 
     @property
     def path(self) -> str:
@@ -34,8 +36,8 @@ class StandaloneJson(BaseModel):
     ome: OmeAttributes
 
     @classmethod
-    def with_ome(cls, node: Node) -> ZarrJson:
-        return cls(ome=OmeAttributes(payload=node))
+    def with_ome(cls, node: Node) -> Self:
+        return cls(ome=OmeAttributes(root=node))
 
     @property
     def path(self) -> str:

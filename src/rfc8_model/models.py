@@ -4,23 +4,80 @@ from typing import Annotated, Literal
 
 from pydantic import BaseModel, Discriminator, StringConstraints
 
-Name = Annotated[str, StringConstraints(pattern=".+")]
-Id = Annotated[str, StringConstraints(pattern="[a-zA-Z0-9-_.]+")]
+Name = Annotated[str, StringConstraints(pattern="^.+$")]
+Id = Annotated[str, StringConstraints(pattern="^[a-zA-Z0-9-_.]+$")]
+Type = Annotated[str, StringConstraints(pattern="^.+$")]
+
+CustomPathFormat = Annotated[str, StringConstraints(pattern="^.+$")]
+PathFormat = Literal["relative"] | CustomPathFormat
 
 
-class Path(BaseModel):
-    type: Literal["zarr", "json"]
-    format: Literal["relative"]
+class _Path(BaseModel):
+    format: PathFormat
     href: str
 
 
-class CoordinateSystemAxis(BaseModel):
-    type: Literal["array", "space", "time", "channel", "coordinate", "displacement"]
+class ZarrPath(_Path):
+    type: Literal["zarr"] = "zarr"
+
+
+class JsonPath(_Path):
+    type: Literal["json"] = "json"
+
+
+class CustomPath(_Path):
+    type: Type
+
+
+Path = Annotated[ZarrPath | JsonPath | CustomPath, Discriminator("type")]
+
+
+class _CoordinateSystemAxis(BaseModel):
     id: Id
     name: Name | None = None
     unit: str | None  # SHOULD
     discrete: bool | None = None  # MAY
     long_name: Name | None = None  # MAY
+
+
+class ArrayCoordinateSystemAxis(BaseModel):
+    type: Literal["array"]
+
+
+class SpaceCoordinateSystemAxis(BaseModel):
+    type: Literal["space"]
+
+
+class TimeCoordinateSystemAxis(BaseModel):
+    type: Literal["time"]
+
+
+class ChannelCoordinateSystemAxis(BaseModel):
+    type: Literal["channel"]
+
+
+class CoordinateCoordinateSystemAxis(BaseModel):
+    type: Literal["coordinate"]
+
+
+class DisplacementCoordinateSystemAxis(BaseModel):
+    type: Literal["displacement"]
+
+
+class CustomCoordinateSystemAxis(_CoordinateSystemAxis):
+    type: Type
+
+
+CoordinateSystemAxis = Annotated[
+    ArrayCoordinateSystemAxis
+    | SpaceCoordinateSystemAxis
+    | TimeCoordinateSystemAxis
+    | ChannelCoordinateSystemAxis
+    | CoordinateCoordinateSystemAxis
+    | DisplacementCoordinateSystemAxis
+    | CustomCoordinateSystemAxis,
+    Discriminator("type"),
+]
 
 
 class CoordinateSystem(BaseModel):
@@ -55,10 +112,15 @@ class TranslateCoordinateTransformation(_CoordinateTransformation):
     scale: tuple[float, ...]
 
 
+class CustomCoordinateTransformation(_CoordinateTransformation):
+    type: Type
+
+
 CoordinateTransformation = Annotated[
     IdentityCoordinateTransformation
     | ScaleCoordinateTransformation
-    | TranslateCoordinateTransformation,
+    | TranslateCoordinateTransformation
+    | CustomCoordinateTransformation,
     Discriminator("type"),
 ]
 
@@ -108,9 +170,6 @@ class MultiscaleNodeReference(BaseModel):
     traits: tuple[Trait, ...] | None = None
 
 
-LeafNodeReference = Annotated[MultiscaleNodeReference, Discriminator("type")]
-
-
 class CollectionNode(BaseModel):
     type: Literal["collection"] = "collection"
     id: Id
@@ -127,15 +186,40 @@ class CollectionNodeReference(BaseModel):
     traits: tuple[Trait, ...] | None = None
 
 
+class CustomLeafNode(BaseModel):
+    type: Type
+    id: Id
+    name: Name | None = None
+    traits: tuple[Trait, ...] | None = None
+
+
+class CustomLeafNodeReference(BaseModel):
+    type: Type
+    id: Id
+    name: Name | None = None
+    path: Path
+    traits: tuple[Trait, ...] | None = None
+
+
 class SceneTrait(BaseModel):
     type: Literal["scene"] = "scene"
     coordinate_systems: tuple[CoordinateSystem, ...] | None = None
     coordinate_transformations: tuple[CoordinateTransformation, ...]
 
 
-Trait = Annotated[SceneTrait, Discriminator("type")]
+class CustomTrait(BaseModel):
+    type: Type
 
-Node = Annotated[MultiscaleNode | CollectionNode, Discriminator("type")]
+
+Trait = Annotated[SceneTrait | CustomTrait, Discriminator("type")]
+
+LeafNodeReference = Annotated[
+    MultiscaleNodeReference | CustomLeafNodeReference, Discriminator("type")
+]
+Node = Annotated[
+    MultiscaleNode | CollectionNode | CustomLeafNode, Discriminator("type")
+]
 NodeReference = Annotated[
-    MultiscaleNodeReference | CollectionNodeReference, Discriminator("type")
+    LeafNodeReference | CollectionNodeReference,
+    Discriminator("type"),
 ]
