@@ -4,7 +4,7 @@ from rfc8_model.aux import StandaloneJson, ZarrJson
 from rfc8_model.models import (
     CollectionNode,
     MultiscaleNode,
-    MultiscaleNodeItem,
+    MultiscaleNodeArray,
     MultiscaleNodeReference,
     ScaleDownsamplingCoordinateTransformation,
     ZarrPath,
