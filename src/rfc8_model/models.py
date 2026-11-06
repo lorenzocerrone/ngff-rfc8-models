@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Annotated, Literal
 
-from pydantic import BaseModel, StringConstraints
+from pydantic import MISSING, BaseModel, Discriminator, StringConstraints
 
 from .utils import OpenTypeUnion
 
@@ -37,10 +37,10 @@ Path = Annotated[ZarrPath | JsonPath | CustomPath, OpenTypeUnion()]
 
 class _CoordinateSystemAxis(BaseModel):
     id: Id
-    name: Name | None = None
-    unit: str | None  # SHOULD
-    discrete: bool | None = None  # MAY
-    long_name: Name | None = None  # MAY
+    name: Name | MISSING = MISSING
+    unit: str | MISSING  # SHOULD
+    discrete: bool | MISSING = MISSING  # MAY
+    long_name: Name | MISSING = MISSING  # MAY
 
 
 class ArrayCoordinateSystemAxis(BaseModel):
@@ -85,18 +85,18 @@ CoordinateSystemAxis = Annotated[
 
 class CoordinateSystem(BaseModel):
     id: Id
-    name: Name | None = None
+    name: Name | MISSING = MISSING
     axes: list[CoordinateSystemAxis]
 
 
 class CoordinateTransformationReference(BaseModel):
     type: Literal["coordinate_system"] = "coordinate_system"
     ref: Id
-    path: Path | None = None
+    path: Path | MISSING = MISSING
 
 
 class _CoordinateTransformation(BaseModel):
-    name: Name | None = None
+    name: Name | MISSING = MISSING
     input: CoordinateTransformationReference
     output: CoordinateTransformationReference
 
@@ -138,10 +138,10 @@ class TranslateDownsamplingCoordinateTransformation(BaseModel):
     translate: tuple[float, ...]
 
 
-class MultiscaleNodeItem(BaseModel):
+class MultiscaleNodeArray(BaseModel):
     type: Literal["singlescale"] = "singlescale"  # ??
-    id: Id | None = None
-    name: Name | None = None
+    id: Id | MISSING = MISSING
+    name: Name | MISSING = MISSING
     downsamplingTransformations: (
         tuple[ScaleDownsamplingCoordinateTransformation]
         | tuple[
@@ -157,56 +157,56 @@ class MultiscaleNodeItem(BaseModel):
 
 class MultiscaleNode(BaseModel):
     type: Literal["multiscale"] = "multiscale"
-    id: Id | None = None
-    name: Name | None = None
+    id: Id | MISSING = MISSING
+    name: Name | MISSING = MISSING
     coordinate_systems: tuple[CoordinateSystem, ...]
-    coordinate_transformations: tuple[CoordinateTransformation, ...] | None = None
-    nodes: tuple[MultiscaleNodeItem, ...]
-    traits: tuple[Trait, ...] | None = None
+    coordinate_transformations: tuple[CoordinateTransformation, ...] | MISSING = MISSING
+    arrays: tuple[MultiscaleNodeArray, ...]
+    traits: tuple[Trait, ...] | MISSING = MISSING
 
 
 class MultiscaleNodeReference(BaseModel):
     type: Literal["multiscale"] = "multiscale"
     id: Id
-    name: Name | None = None
+    name: Name | MISSING = MISSING
     path: Path
-    traits: tuple[Trait, ...] | None = None
+    traits: tuple[Trait, ...] | MISSING = MISSING
 
 
 class CollectionNode(BaseModel):
     type: Literal["collection"] = "collection"
     id: Id
-    name: Name | None = None
+    name: Name | MISSING = MISSING
     nodes: tuple[CollectionNode | CollectionNodeReference | LeafNodeReference, ...]
-    traits: tuple[Trait, ...] | None = None
+    traits: tuple[Trait, ...] | MISSING = MISSING
 
 
 class CollectionNodeReference(BaseModel):
     type: Literal["collection"] = "collection"
     id: Id
-    name: Name | None = None
+    name: Name | MISSING = MISSING
     path: Path
-    traits: tuple[Trait, ...] | None = None
+    traits: tuple[Trait, ...] | MISSING = MISSING
 
 
 class CustomLeafNode(BaseModel):
     type: Type
     id: Id
-    name: Name | None = None
-    traits: tuple[Trait, ...] | None = None
+    name: Name | MISSING = MISSING
+    traits: tuple[Trait, ...] | MISSING = MISSING
 
 
 class CustomLeafNodeReference(BaseModel):
     type: Type
     id: Id
-    name: Name | None = None
+    name: Name | MISSING = MISSING
     path: Path
-    traits: tuple[Trait, ...] | None = None
+    traits: tuple[Trait, ...] | MISSING = MISSING
 
 
 class SceneTrait(BaseModel):
     type: Literal["scene"] = "scene"
-    coordinate_systems: tuple[CoordinateSystem, ...] | None = None
+    coordinate_systems: tuple[CoordinateSystem, ...] | MISSING = MISSING
     coordinate_transformations: tuple[CoordinateTransformation, ...]
 
 

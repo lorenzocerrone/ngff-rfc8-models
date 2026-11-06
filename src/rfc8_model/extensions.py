@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Annotated, Literal
 
-from pydantic import BaseModel, Field, StringConstraints
+from pydantic import MISSING, BaseModel, Field, StringConstraints
 
 from .models import Name
 
@@ -21,8 +21,8 @@ class ExtensionManifestSchema(BaseModel):
 class ExtensionManifest(BaseModel):
     id: URI | str  # Maybe rename?
     version: Version
-    name: Name | None = None
-    description: NonEmpty | None = None
+    name: Name | MISSING = MISSING
+    description: NonEmpty | MISSING = MISSING
     must_understand: bool = False
-    homepage: URL | None = None
+    homepage: URL | MISSING = MISSING
     schemas: list[ExtensionManifestSchema] = Field(default_factory=list)

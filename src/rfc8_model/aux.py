@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Literal, Self
 
-from pydantic import BaseModel
+from pydantic import MISSING, BaseModel
 
 from .extensions import ExtensionManifest
 from .models import Node
@@ -11,7 +11,7 @@ from .models import Node
 class OmeAttributes(BaseModel):
     version: Literal["0.9dev42"] = "0.9dev42"
     root: Node
-    extension_manifest: ExtensionManifest | None = None
+    extension_manifest: ExtensionManifest | MISSING = MISSING
 
 
 class Attributes(BaseModel):
