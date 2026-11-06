@@ -2,13 +2,16 @@ from __future__ import annotations
 
 from typing import Annotated, Literal
 
-from pydantic import BaseModel, Discriminator, StringConstraints
+from pydantic import BaseModel, StringConstraints
+
+from .utils import OpenTypeUnion
 
 Name = Annotated[str, StringConstraints(pattern="^.+$")]
 Id = Annotated[str, StringConstraints(pattern="^[a-zA-Z0-9-_.]+$")]
 Type = Annotated[str, StringConstraints(pattern="^.+$")]
 
 CustomPathFormat = Annotated[str, StringConstraints(pattern="^.+$")]
+
 PathFormat = Literal["relative"] | CustomPathFormat
 
 
@@ -29,7 +32,7 @@ class CustomPath(_Path):
     type: Type
 
 
-Path = Annotated[ZarrPath | JsonPath | CustomPath, Discriminator("type")]
+Path = Annotated[ZarrPath | JsonPath | CustomPath, OpenTypeUnion()]
 
 
 class _CoordinateSystemAxis(BaseModel):
@@ -76,7 +79,7 @@ CoordinateSystemAxis = Annotated[
     | CoordinateCoordinateSystemAxis
     | DisplacementCoordinateSystemAxis
     | CustomCoordinateSystemAxis,
-    Discriminator("type"),
+    OpenTypeUnion(),
 ]
 
 
@@ -121,7 +124,7 @@ CoordinateTransformation = Annotated[
     | ScaleCoordinateTransformation
     | TranslateCoordinateTransformation
     | CustomCoordinateTransformation,
-    Discriminator("type"),
+    OpenTypeUnion(),
 ]
 
 
@@ -211,15 +214,13 @@ class CustomTrait(BaseModel):
     type: Type
 
 
-Trait = Annotated[SceneTrait | CustomTrait, Discriminator("type")]
+Trait = Annotated[SceneTrait | CustomTrait, OpenTypeUnion()]
 
 LeafNodeReference = Annotated[
-    MultiscaleNodeReference | CustomLeafNodeReference, Discriminator("type")
+    MultiscaleNodeReference | CustomLeafNodeReference, OpenTypeUnion()
 ]
-Node = Annotated[
-    MultiscaleNode | CollectionNode | CustomLeafNode, Discriminator("type")
-]
+Node = Annotated[MultiscaleNode | CollectionNode | CustomLeafNode, OpenTypeUnion()]
 NodeReference = Annotated[
-    LeafNodeReference | CollectionNodeReference,
-    Discriminator("type"),
+    MultiscaleNodeReference | CollectionNodeReference | CustomLeafNodeReference,
+    OpenTypeUnion(),
 ]
